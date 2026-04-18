@@ -7,6 +7,7 @@
 """
 
 import os
+import sys
 import re
 import feedparser
 import httpx
@@ -16,6 +17,9 @@ from typing import List, Dict, Optional, Tuple
 import logging
 
 from whisper_transcriber import WhisperTranscriber
+
+# 脚本目录（用于路径解析，支持脚本独立运行）
+SCRIPT_DIR = Path(__file__).parent
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,10 +40,14 @@ class XiaoyuzhouMonitor:
         "HTTP 403", "HTTP 404", "status_code: 403"
     ]
     
-    def __init__(self, config_path: str = "./内容监控/配置/博主列表.md"):
-        self.config_path = config_path
-        self.output_dir = "./内容监控/输出/小宇宙"
-        self.state_file = "./内容监控/日志/小宇宙状态.json"
+    def __init__(self, config_path: str = None):
+        # 使用 Path 对象，与 monitor.py 保持一致
+        if config_path:
+            self.config_path = Path(config_path)
+        else:
+            self.config_path = SCRIPT_DIR.parent / "配置" / "博主列表.md"
+        self.output_dir = SCRIPT_DIR.parent / "输出" / "小宇宙"
+        self.state_file = SCRIPT_DIR.parent / "日志" / "小宇宙状态.json"
         self.processed = self._load_state()
         
         # Fallback配置（v1.5.0新增）
