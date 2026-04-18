@@ -2,7 +2,7 @@
 
 > 主动出击，精准捕获有价值的内容，转化为你的知识资产
 
-**版本**: v1.2.5 | **状态**: 正式版
+**版本**: v1.3.0 | **状态**: 正式版
 
 ---
 
@@ -48,6 +48,20 @@
 | ✏️ **选题生成** | 基于热点生成具体选题建议 |
 | 📋 **周报推送** | 周日自动生成选题报告 |
 
+### 📚 多知识库同步（v1.3）⭐ 最新升级
+
+支持同时同步到多个知识库，用户按需选择：
+
+| 知识库 | 同步方式 | 配置难度 |
+|--------|---------|---------|
+| **飞书** | 通过 lark-cli 上传到知识库 | ⭐⭐ 需安装 lark-cli |
+| **Obsidian** | 直接写入本地 vault 文件夹 | ⭐ 仅需指定路径 |
+
+Obsidian 特性：
+- 自动添加 YAML frontmatter（日期、来源、标签、状态）
+- 支持 `[[]]` 双链语法
+- 按平台自动分文件夹
+
 ---
 
 ## 🚀 产品演进
@@ -57,6 +71,7 @@
 | v1.0 | 转录存储 | 免费转录，存飞书 |
 | v1.1 | 简报推送 | 主动推送精选内容 |
 | v1.2 | 选题发现器 | 帮创作者发现选题 |
+| **v1.3** | **多知识库支持** | **用户自选同步目标** |
 
 ---
 
@@ -103,6 +118,7 @@
 
 - ✅ **完全免费**：Whisper开源模型本地运行，无API费用
 - ✅ **多平台支持**：小宇宙、YouTube、B站、Twitter
+- ✅ **多知识库支持**：飞书、Obsidian，按需选择
 - ✅ **AI赋能**：LLM智能提取观点、生成选题
 - ✅ **选题发现**：从内容消费升级到创作辅助
 - ✅ **定时推送**：每日简报 + 周选题报告
@@ -149,6 +165,22 @@ pip install -r scripts/requirements.txt
 | 示例UP主 | 12345678 |
 ```
 
+### 配置知识库同步（可选）
+
+```bash
+# 复制配置模板
+cp .env.example .env
+
+# 编辑 .env 启用知识库
+# 飞书
+FEISHU_ENABLED=true
+FEISHU_WIKI_SPACE=my_library
+
+# Obsidian
+OBSIDIAN_ENABLED=true
+OBSIDIAN_VAULT_PATH=/path/to/your/vault
+```
+
 ### 运行监控
 
 ```bash
@@ -164,12 +196,55 @@ python scripts/daily_briefing.py
 
 ---
 
+## 📦 升级指南（v1.2.x → v1.3.0）
+
+### 升级方式
+
+**方式一：重新克隆（推荐）**
+```bash
+# 备份配置
+cp -r 配置 ../配置备份
+
+# 重新克隆
+git clone https://github.com/chubbyxiaopangdun/knowledge-hunter.git
+```
+
+**方式二：Git 拉取**
+```bash
+cd knowledge-hunter
+git pull origin main
+```
+
+### ⚠️ 配置迁移（重要）
+
+v1.3.0 对知识库同步进行了架构升级：
+
+```bash
+# 1. 创建 .env 文件
+cp .env.example .env
+
+# 2. 启用需要的知识库
+# 编辑 .env 文件：
+FEISHU_ENABLED=true          # 启用飞书
+OBSIDIAN_ENABLED=true        # 启用 Obsidian
+OBSIDIAN_VAULT_PATH=/path    # Obsidian vault 路径
+```
+
+### 向后兼容
+
+- ✅ 默认不启用任何知识库同步
+- ✅ 监控、转录、观点提取等功能不受影响
+- ✅ 原有配置方式仍然支持
+
+---
+
 ## 📁 文件结构
 
 ```
 knowledge-hunter/
 ├── SKILL.md                  # 技能详细文档
 ├── README.md                 # 本文档
+├── .env.example              # 环境变量配置模板 ⭐ v1.3.0
 ├── scripts/                  # 核心脚本
 │   ├── monitor.py            # 主监控脚本
 │   ├── bilibili.py           # B站监控
@@ -184,6 +259,9 @@ knowledge-hunter/
 │   ├── topic_generator.py    # 选题生成
 │   ├── topic_report.py       # 选题报告
 │   ├── daily_briefing.py     # 每日简报
+│   ├── config.py             # 知识库配置 ⭐ v1.3.0
+│   ├── knowledge_base.py     # 知识库工厂 ⭐ v1.3.0
+│   ├── sync_to_obsidian.py   # Obsidian同步 ⭐ v1.3.0
 │   └── sync_to_feishu.py     # 飞书同步
 ├── templates/                # 模板文件
 │   ├── 博主列表.md
@@ -225,7 +303,21 @@ python scripts/topic_report.py
 8个选题建议已生成
 ```
 
-### 场景3：配置定时任务
+### 场景3：同步到 Obsidian
+
+```bash
+# 配置 .env
+OBSIDIAN_ENABLED=true
+OBSIDIAN_VAULT_PATH=/Users/xxx/Documents/ObsidianVault
+
+# 运行监控，自动同步
+python scripts/monitor.py
+
+# 在 Obsidian 中查看
+# 内容监控/小宇宙/2026-04-18_xxx.md
+```
+
+### 场景4：配置定时任务
 
 ```bash
 # 每天早上9点生成简报
@@ -251,6 +343,7 @@ python scripts/topic_report.py
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **v1.3.0** | 2026-04-18 | 🚀 多知识库支持（飞书+Obsidian）、升级指南 |
 | v1.2.5 | 2026-04-18 | 飞书改用lark-cli，安全修复 |
 | v1.2.4 | 2026-04-18 | 虾评版（移除B站登录态） |
 | v1.2.3 | 2026-04-18 | 安全修复：移除pip自动安装 |
