@@ -1,4 +1,4 @@
-# Content Monitor 依赖列表
+# Content Monitor 依赖列表 v1.1.0
 
 # 核心依赖
 feedparser>=6.0.0          # RSS解析
@@ -24,6 +24,11 @@ python-dateutil>=2.8.0     # 日期处理
 pytz>=2023.0               # 时区处理
 tqdm>=4.65.0               # 进度条
 colorama>=0.4.0            # 终端颜色
+
+# ============ v1.1.0 新增依赖 ============
+
+# LLM API 调用（观点提取、内容评分）
+openai>=1.0.0              # OpenAI API (兼容Coze/DeepSeek)
 
 # 可选依赖
 # faster-whisper>=0.9.0    # 更快的转录（可选）

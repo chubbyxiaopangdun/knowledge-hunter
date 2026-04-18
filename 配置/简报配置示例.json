@@ -1,0 +1,11 @@
+{
+  "push_time": "09:00",
+  "feishu_webhook": "",
+  "feishu_chat_id": "",
+  "video_count": 3,
+  "podcast_count": 2,
+  "conflict_count": 1,
+  "score_threshold": 6.0,
+  "days_range": 1,
+  "auto_push": false
+}

@@ -92,11 +92,16 @@ class TwitterMonitor:
         return None
     
     def fetch_tweets(self, username: str) -> List[Dict]:
-        """获取用户推文"""
-        # 使用nitter.net作为推特的前端（无需登录）
-        # 备选： syndication API
+        """获取用户推文
         
-        # 方法1: syndication.twitter.com
+        安全说明：仅使用Twitter官方API，不依赖任何第三方服务
+        避免数据外泄到不可信的第三方服务器
+        
+        如需获取推文，请：
+        1. 使用Twitter官方API（需要API Key）
+        2. 或使用RSS订阅服务
+        """
+        # 安全：仅使用Twitter官方syndication API
         url = f"https://syndication.twitter.com/srv/timeline-profile/screen-name/{username}"
         
         headers = {
@@ -121,33 +126,9 @@ class TwitterMonitor:
                     } for tweet in tweets[:20]]  # 最多获取20条
                 
         except Exception as e:
-            logger.warning(f"syndication API失败: {e}")
+            logger.warning(f"Twitter API获取失败: {e}")
         
-        # 方法2: 使用Nitter实例
-        nitter_instances = [
-            'nitter.net',
-            'nitter.privacydev.net',
-            'xcancel.com',
-        ]
-        
-        for instance in nitter_instances:
-            try:
-                url = f"https://{instance}/{username}"
-                headers = {
-                    'User-Agent': 'Mozilla/5.0 (compatible; ContentMonitor/1.0)',
-                }
-                
-                with httpx.Client() as client:
-                    response = client.get(url, headers=headers, timeout=10)
-                    
-                    if response.status_code == 200:
-                        return self._parse_nitter_html(response.text, username)
-                        
-            except Exception as e:
-                logger.warning(f"Nitter {instance} 失败: {e}")
-                continue
-        
-        logger.error(f"无法获取 {username} 的推文")
+        logger.error(f"无法获取 {username} 的推文，请配置Twitter API Key或使用RSS订阅")
         return []
     
     def _parse_nitter_html(self, html: str, username: str) -> List[Dict]:

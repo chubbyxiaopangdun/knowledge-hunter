@@ -1,0 +1,7 @@
+{
+  "provider": "coze",
+  "model": "gpt-4o-mini",
+  "temperature": 0.7,
+  "max_tokens": 1000,
+  "cache_enabled": true
+}

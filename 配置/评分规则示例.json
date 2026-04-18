@@ -1,0 +1,34 @@
+{
+  "viewpoint": {
+    "has_clear_viewpoint": 2.0,
+    "has_examples": 1.5,
+    "has_depth": 2.0,
+    "has_actionable": 1.5,
+    "has_unique_angle": 2.0,
+    "has_logic_chain": 1.0
+  },
+  "info_density": {
+    "no_filler": 2.0,
+    "data_driven": 2.0,
+    "multi_perspective": 2.0,
+    "structured": 2.0,
+    "dense_content": 2.0
+  },
+  "originality": {
+    "new_insight": 3.0,
+    "fresh_data": 2.0,
+    "unique_perspective": 3.0,
+    "contrarian_view": 2.0
+  },
+  "weights": {
+    "viewpoint": 0.4,
+    "info_density": 0.3,
+    "originality": 0.3
+  },
+  "thresholds": {
+    "strong_recommend": 8.0,
+    "recommend": 7.0,
+    "worth_watching": 6.0,
+    "average": 5.0
+  }
+}
