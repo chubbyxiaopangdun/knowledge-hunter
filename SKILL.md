@@ -197,7 +197,12 @@
 │   ├── bilibili.py            # B站监控
 │   ├── twitter.py             # Twitter监控
 │   ├── whisper_transcriber.py # Whisper转录
-│   └── sync_to_feishu.py      # 飞书同步
+│   │
+│   │   ⭐ v1.3.0 新增脚本 ⭐
+│   ├── config.py              # 🔥知识库配置模块
+│   ├── knowledge_base.py      # 🔥知识库工厂
+│   ├── sync_to_obsidian.py    # 🔥Obsidian同步器
+│   └── sync_to_feishu.py      # 飞书同步（已重构）
 │
 ├── 配置/
 │   ├── 博主列表.md             # 监控目标配置
@@ -278,6 +283,77 @@ cp templates/历史选题库.md 选题库/历史选题库.md
 
 ---
 
+## 📚 知识库同步配置（v1.3.0）
+
+### 支持的知识库
+
+| 知识库 | 同步方式 | 配置难度 |
+|--------|---------|---------|
+| **飞书** | 通过 lark-cli 上传到知识库 | ⭐⭐ 需安装 lark-cli |
+| **Obsidian** | 直接写入本地 vault 文件夹 | ⭐ 仅需指定路径 |
+
+### 配置方法
+
+#### 飞书知识库
+
+1. **安装 lark-cli**（首次使用）
+   ```bash
+   # macOS
+   brew install lark-cli
+   
+   # 或参考官方文档
+   # https://github.com/nicepkg/lark-cli
+   ```
+
+2. **配置 .env**
+   ```bash
+   FEISHU_ENABLED=true
+   FEISHU_WIKI_SPACE=你的知识库空间名
+   FEISHU_ROOT_FOLDER=内容监控
+   ```
+
+#### Obsidian 知识库
+
+1. **找到你的 vault 路径**
+   - 在 Obsidian 中打开设置 → 关于 → 打开 vault 文件夹
+   - 复制文件夹路径
+
+2. **配置 .env**
+   ```bash
+   OBSIDIAN_ENABLED=true
+   OBSIDIAN_VAULT_PATH=/Users/你的用户名/Documents/ObsidianVault
+   OBSIDIAN_FOLDER=内容监控
+   ```
+
+### Obsidian 特性
+
+同步到 Obsidian 的文件会自动：
+- 添加 YAML frontmatter（日期、来源、标签、状态）
+- 按 平台/日期_标题.md 格式命名
+- 支持 `[[]]` 双链语法
+
+示例 frontmatter：
+```yaml
+---
+date: 2026-04-18
+source: 小宇宙
+tags: [播客, 转录, AI]
+status: new
+---
+```
+
+### 同时启用多个知识库
+
+```bash
+# .env
+FEISHU_ENABLED=true
+OBSIDIAN_ENABLED=true
+```
+
+系统会自动同步到所有启用的知识库~
+
+---
+
 ## 配置说明
 
 ### 选题配置 (选题配置.json)
@@ -305,9 +381,67 @@ cp templates/历史选题库.md 选题库/历史选题库.md
 
 | 版本 | 更新内容 |
 |------|---------|
-| **v1.2.0** | 新增选题发现器：话题聚类、选题生成、内容关联、选题报告 |
+| **v1.3.0** | 多知识库支持：新增 Obsidian 同步、知识库工厂模式、向后兼容升级 |
+| v1.2.0 | 新增选题发现器：话题聚类、选题生成、内容关联、选题报告 |
 | v1.1.0 | 新增每日简报推送、观点提取、内容评分、冲突检测 |
 | v1.0.0 | 基础监控功能（转录+飞书同步） |
+
+---
+
+## 📦 升级指南（v1.2.x → v1.3.0）
+
+### 升级方式
+
+**方式一：重新安装（推荐）**
+从 GitHub 或虾评重新下载安装最新版本，覆盖原有文件即可。
+
+**方式二：Git 拉取**
+```bash
+cd .skills/content-monitor
+git pull origin main
+```
+
+### ⚠️ 重要：配置迁移
+
+v1.3.0 对知识库同步进行了架构升级，需要更新配置：
+
+#### 1. 创建 .env 文件
+
+复制 `.env.example` 为 `.env`：
+```bash
+cp .env.example .env
+```
+
+#### 2. 启用知识库（按需配置）
+
+**如果你之前使用飞书同步：**
+```bash
+# .env 文件中添加
+FEISHU_ENABLED=true
+FEISHU_WIKI_SPACE=my_library
+FEISHU_ROOT_FOLDER=内容监控
+```
+
+**如果你想新增 Obsidian 同步：**
+```bash
+OBSIDIAN_ENABLED=true
+OBSIDIAN_VAULT_PATH=/path/to/your/obsidian/vault
+OBSIDIAN_FOLDER=内容监控
+```
+
+#### 3. 新增文件说明
+
+| 文件 | 说明 |
+|------|------|
+| `scripts/config.py` | 知识库配置模块 |
+| `scripts/knowledge_base.py` | 知识库工厂（统一管理多知识库） |
+| `scripts/sync_to_obsidian.py` | Obsidian 同步器 |
+
+### 向后兼容
+
+- ✅ 默认不启用任何知识库同步
+- ✅ 原有飞书配置方式仍然支持（但建议迁移到 .env）
+- ✅ 监控、转录、观点提取等功能不受影响
 
 ---
 
