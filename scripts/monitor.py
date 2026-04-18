@@ -35,16 +35,23 @@ logger = logging.getLogger(__name__)
 class ContentMonitor:
     """内容监控系统主类"""
     
-    def __init__(self, enable_viewpoint: bool = True):
+    def __init__(self, enable_viewpoint: bool = True, enable_quote_extraction: bool = None):
         """初始化监控系统
         
         Args:
             enable_viewpoint: 是否启用观点提取功能
+            enable_quote_extraction: 是否启用金句提取（默认从环境变量读取）
         """
         self.start_time = datetime.now()
         self.config_path = SCRIPT_DIR.parent / "配置" / "博主列表.md"
         self.output_dir = SCRIPT_DIR.parent / "输出"
         self.enable_viewpoint = enable_viewpoint
+        
+        # 金句提取配置（默认从环境变量读取，兼容旧版本）
+        if enable_quote_extraction is None:
+            enable_quote_extraction = os.getenv('ENABLE_QUOTE_EXTRACTION', 'false').lower() == 'true'
+        self.enable_quote_extraction = enable_quote_extraction
+        self.quotes_output_dir = SCRIPT_DIR.parent / os.getenv('QUOTES_OUTPUT_DIR', 'quotes')
         
         self.results = {
             'xiaoyuzhou': [],
@@ -52,12 +59,17 @@ class ContentMonitor:
             'bilibili': [],
             'twitter': [],
             'feishu': {},
-            'viewpoints': [],  # 新增：观点提取结果
+            'viewpoints': [],  # 观点提取结果
+            'quotes': [],      # 金句提取结果（v1.4.0新增）
         }
         
         # 观点提取器（按需初始化）
         self._viewpoint_extractor = None
         self._viewpoint_cache_dir = SCRIPT_DIR.parent / "缓存" / "观点库"
+        
+        # 金句提取器（按需初始化，v1.4.0新增）
+        self._quote_extractor = None
+        self._quote_library = None
         
         # 检查配置
         if not self.config_path.exists():
@@ -278,6 +290,215 @@ class ContentMonitor:
         logger.info(f"观点已保存: {output_file}")
         return str(output_file)
     
+    # ==================== 金句提取相关方法 (v1.4.0新增) ====================
+    
+    def _get_quote_extractor(self):
+        """获取金句提取器（延迟初始化）"""
+        if self._quote_extractor is None:
+            try:
+                from quote_extractor import QuoteExtractor
+                quotes_per_video = int(os.getenv('QUOTES_PER_VIDEO', '20'))
+                self._quote_extractor = QuoteExtractor(quotes_per_video=quotes_per_video)
+                logger.info("金句提取器初始化成功")
+            except ImportError as e:
+                logger.warning(f"金句提取器导入失败: {e}")
+                self._quote_extractor = None
+        return self._quote_extractor
+    
+    def _get_quote_library(self):
+        """获取素材库管理器（延迟初始化）"""
+        if self._quote_library is None:
+            try:
+                from quote_library import QuoteLibrary
+                self._quote_library = QuoteLibrary(str(self.quotes_output_dir))
+                logger.info("素材库管理器初始化成功")
+            except ImportError as e:
+                logger.warning(f"素材库管理器导入失败: {e}")
+                self._quote_library = None
+        return self._quote_library
+    
+    def extract_quotes_from_file(self, file_path: str, platform: str, source_info: Dict = None) -> List[Dict]:
+        """从转录文件提取金句
+        
+        Args:
+            file_path: 转录文件路径
+            platform: 平台名称
+            source_info: 来源信息字典
+            
+        Returns:
+            List[Dict]: 金句列表
+        """
+        if not self.enable_quote_extraction:
+            return []
+        
+        extractor = self._get_quote_extractor()
+        if extractor is None:
+            logger.warning("金句提取器不可用")
+            return []
+        
+        source_info = source_info or {}
+        
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                text = f.read()
+            
+            if len(text) < 100:  # 内容太短，跳过
+                return []
+            
+            source_title = source_info.get('title', Path(file_path).stem)
+            source_author = source_info.get('author', '')
+            source_url = source_info.get('url', '')
+            
+            quotes = extractor.extract(
+                text=text,
+                source_title=source_title,
+                source_author=source_author,
+                source_url=source_url,
+                platform=platform,
+            )
+            
+            # 转换为字典格式
+            return [
+                {
+                    'text': q.text,
+                    'topic': q.topic,
+                    'source_title': q.source_title,
+                    'source_author': q.source_author,
+                    'source_url': q.source_url,
+                    'platform': q.platform,
+                    'created_at': q.created_at,
+                    'usage': q.usage,
+                }
+                for q in quotes
+            ]
+            
+        except Exception as e:
+            logger.warning(f"金句提取失败 [{file_path}]: {e}")
+            return []
+    
+    def run_quote_extraction(self, new_files: Dict[str, List[str]]) -> List[Dict]:
+        """对新增文件执行金句提取
+        
+        Args:
+            new_files: 各平台新增文件路径
+                
+        Returns:
+            List[Dict]: 金句列表
+        """
+        if not self.enable_quote_extraction:
+            logger.info("金句提取功能已禁用（可通过设置 ENABLE_QUOTE_EXTRACTION=true 启用）")
+            return []
+        
+        logger.info("=" * 50)
+        logger.info("开始金句提取")
+        
+        all_quotes = []
+        
+        for platform, files in new_files.items():
+            for file_path in files:
+                try:
+                    quotes = self.extract_quotes_from_file(file_path, platform)
+                    
+                    if quotes:
+                        for q in quotes:
+                            q['file_path'] = file_path
+                            q['platform'] = platform
+                        all_quotes.extend(quotes)
+                        logger.info(f"金句提取成功: {Path(file_path).stem} ({len(quotes)}个)")
+                        
+                except Exception as e:
+                    logger.warning(f"金句提取失败 [{file_path}]: {e}")
+        
+        logger.info(f"金句提取完成: {len(all_quotes)} 个")
+        self.results['quotes'] = all_quotes
+        
+        return all_quotes
+    
+    def save_quotes(self) -> str:
+        """保存金句到素材库"""
+        if not self.results['quotes']:
+            return ""
+        
+        library = self._get_quote_library()
+        if library is None:
+            logger.warning("素材库管理器不可用")
+            return ""
+        
+        try:
+            # 导入Quote类
+            from quote_extractor import Quote
+            
+            quotes = []
+            for q_data in self.results['quotes']:
+                quote = Quote(
+                    text=q_data['text'],
+                    topic=q_data['topic'],
+                    source_title=q_data['source_title'],
+                    source_author=q_data.get('source_author', ''),
+                    source_url=q_data.get('source_url', ''),
+                    platform=q_data.get('platform', ''),
+                    created_at=q_data.get('created_at', datetime.now().isoformat()),
+                    usage=q_data.get('usage', ''),
+                )
+                quotes.append(quote)
+            
+            library.add_quotes(quotes)
+            
+            # 生成素材库报告
+            output_file = self.quotes_output_dir / f"extraction_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+            self._generate_quote_report(output_file, quotes)
+            
+            logger.info(f"金句已保存到素材库: {self.quotes_output_dir}")
+            return str(self.quotes_output_dir)
+            
+        except Exception as e:
+            logger.error(f"保存金句失败: {e}")
+            return ""
+    
+    def _generate_quote_report(self, output_path: Path, quotes: List):
+        """生成金句提取报告"""
+        lines = [
+            f"# 金句提取报告",
+            "",
+            f"生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"金句数量: {len(quotes)}",
+            "",
+            "---",
+            "",
+        ]
+        
+        # 按主题分组统计
+        topic_stats = {}
+        for q in quotes:
+            topic = q.topic
+            topic_stats[topic] = topic_stats.get(topic, 0) + 1
+        
+        lines.append("## 主题分布\n")
+        for topic, count in sorted(topic_stats.items(), key=lambda x: x[1], reverse=True):
+            lines.append(f"- {topic}: {count}个")
+        
+        lines.append("")
+        lines.append("---")
+        lines.append("")
+        lines.append("## 金句列表\n")
+        
+        for i, q in enumerate(quotes, 1):
+            lines.append(f"### {i}. [{q.topic}] {q.source_title}")
+            lines.append("")
+            lines.append(f"> {q.text}")
+            lines.append("")
+            if q.source_author:
+                lines.append(f"- 作者: {q.source_author}")
+            if q.source_url:
+                lines.append(f"- 链接: {q.source_url}")
+            lines.append(f"- 平台: {q.platform}")
+            if q.usage:
+                lines.append(f"- 使用建议: {q.usage}")
+            lines.append("")
+        
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text('\n'.join(lines), encoding='utf-8')
+    
     def generate_summary(self) -> str:
         """生成执行摘要"""
         total_files = (
@@ -319,6 +540,25 @@ class ContentMonitor:
             
             for cat, count in categories.items():
                 lines.append(f"  - {cat}: {count} 个")
+        
+        # 金句提取结果（v1.4.0新增）
+        quotes = self.results.get('quotes', [])
+        if quotes:
+            lines.append("")
+            lines.append("## 金句提取结果 (v1.4.0)\n")
+            lines.append(f"- 提取金句: {len(quotes)} 个")
+            
+            # 主题统计
+            topics = {}
+            for q in quotes:
+                topic = q.get('topic', '未知')
+                topics[topic] = topics.get(topic, 0) + 1
+            
+            lines.append(f"- 涵盖主题: {len(topics)} 个")
+            for topic, count in sorted(topics.items(), key=lambda x: x[1], reverse=True)[:5]:
+                lines.append(f"  - {topic}: {count} 个")
+            
+            lines.append(f"\n💡 金句已存入素材库: {self.quotes_output_dir}")
         
         lines.append("")
         
@@ -393,7 +633,7 @@ class ContentMonitor:
             if all_files:
                 self.results['feishu'] = self.run_feishu_sync(all_files)
         
-        # 观点提取（新增功能）
+        # 观点提取（v1.1.0新增功能）
         if extract_viewpoints and self.enable_viewpoint:
             new_files = {
                 'xiaoyuzhou': self.results['xiaoyuzhou'],
@@ -403,6 +643,17 @@ class ContentMonitor:
             }
             self.run_viewpoint_extraction(new_files)
             self.save_viewpoints()
+        
+        # 金句提取（v1.4.0新增功能）
+        if self.enable_quote_extraction:
+            new_files = {
+                'xiaoyuzhou': self.results['xiaoyuzhou'],
+                'youtube': self.results['youtube'],
+                'bilibili': self.results['bilibili'],
+                'twitter': self.results['twitter'],
+            }
+            self.run_quote_extraction(new_files)
+            self.save_quotes()
         
         # 生成报告
         summary = self.generate_summary()

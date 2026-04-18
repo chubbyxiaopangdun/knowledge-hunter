@@ -1,4 +1,4 @@
-# Content Monitor 依赖列表 v1.2.5
+# Content Monitor 依赖列表 v1.5.0
 # 安全修复：固定所有依赖版本，避免供应链风险
 
 # 核心依赖

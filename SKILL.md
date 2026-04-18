@@ -2,7 +2,7 @@
 
 > 主动出击，精准捕获有价值的内容，转化为你的知识资产 🎯
 
-**版本**: v1.2.5  
+**版本**: v1.5.0  
 **更新时间**: 2026-04-18  
 **状态**: 正式版 (stable)
 
@@ -174,6 +174,197 @@
 
 ---
 
+## 🎯 金句提取器 v1.4.0 ⭐ 最新升级
+
+从「监控工具」升级为「素材工具」，自动从转录内容中提取金句，存入素材库供内容创作使用。
+
+### 解决的问题
+
+- 转录的内容无法直接用于创作
+- 想要引用原文金句但找不到
+- 积累的素材太多太杂难以整理
+
+### 核心功能
+
+| 模块 | 脚本 | 功能 |
+|------|------|------|
+| 金句提取器 | `quote_extractor.py` | 调用AI从转录文本中提取金句 |
+| 素材库管理 | `quote_library.py` | 管理金句素材库，支持搜索和导出 |
+
+### 金句提取流程
+
+```
+内容转录 → AI自动提取约20个金句 → 存入素材库 → 用户创作时提取使用
+```
+
+### 金句格式
+
+每个金句包含：
+- **原文**：完整的金句文本
+- **主题标签**：AI自动识别的主题（创业/职场/AI等）
+- **来源信息**：标题、作者、链接、平台
+- **使用建议**：可选的使用场景提示
+
+### 素材库目录结构
+
+```
+quotes/
+├── all_quotes.md          # 全部金句汇总
+├── by_topic/              # 按主题分类
+│   ├── AI创业.md
+│   ├── 个人成长.md
+│   └── ...
+└── metadata.json          # 元数据索引
+```
+
+### 配置选项
+
+```bash
+# 启用金句提取（默认关闭，向后兼容）
+ENABLE_QUOTE_EXTRACTION=true
+
+# 每个视频提取的金句数量
+QUOTES_PER_VIDEO=20
+
+# AI模型（默认gpt-4o-mini，性价比高）
+QUOTE_MODEL=gpt-4o-mini
+
+# 素材库存放目录
+QUOTES_OUTPUT_DIR=./quotes
+```
+
+### 使用示例
+
+```bash
+# 命令行直接提取金句
+python scripts/quote_extractor.py --file 输出/某视频.txt --title "视频标题"
+
+# 查看素材库统计
+python scripts/quote_library.py stats
+
+# 按主题搜索
+python scripts/quote_library.py list --topic AI
+
+# 导出全部素材
+python scripts/quote_library.py export --output my_quotes.md
+```
+
+### 注意事项
+
+- ⚠️ 金句提取使用AI模型，会产生API费用
+- 💡 建议使用 `gpt-4o-mini` 模型，性价比最高
+- 🔄 默认关闭，如需启用请设置 `ENABLE_QUOTE_EXTRACTION=true`
+- 📊 金句会自动按主题分类存储，方便后续查找使用
+
+---
+
+## 🎯 每日创意燃料 v2.0 ⭐ 核心升级（2026-04-18）
+
+从「选题发现」升级为「创意燃料」，每天早上告诉你：**今天做什么内容**。
+
+### 解决的问题
+
+- 选题报告太「统计」不「行动」—— 不知道今天具体做什么
+- 转录的内容无法直接用于创作
+- 缺少「看完就能动手」的素材
+
+### 核心功能
+
+| 模块 | 脚本 | 功能 |
+|------|------|------|
+| 每日创意燃料 | `daily_fuel.py` | 每天生成「今日做什么」的行动建议 |
+| 金句提取器 | `gold_sentence.py` | 从文本中提取有价值的引用金句 |
+| Thread生成器 | `thread_generator.py` | 基于热点+金句生成可直接发布的内容 |
+
+### 每日创意燃料格式
+
+```
+📋 今日创意燃料 | 2026-04-18 周六
+
+🔥 今日热点（3个可追热点）
+1️⃣ AI Agent创业
+   - 热度：85/100 | 今日相关：12条
+   - 建议选题：「AI Agent创业的3个陷阱」
+
+💡 今日金句（5个可直接引用的素材）
+「AI不会取代你，但会用AI的人会取代你」— 某CEO
+
+✏️ 今日可做（1个可直接发布的Thread）
+【Tweet 1/5】
+{钩子}
+...
+```
+
+
+### 金句提取器（gold_sentence.py）
+
+**功能**：从任意文本中提取有价值的引用金句
+
+**金句特征**：
+1. 有独特观点（不是描述，是判断）
+2. 语言有力（简洁有力）
+3. 可独立引用（不需要上下文）
+4. 字数适中（20-80字）
+5. 有共鸣感（能引发认同）
+
+**使用方式**：
+```python
+from gold_sentence import extract_gold_sentences
+
+text = "...你的转录文本..."
+sentences = extract_gold_sentences(text, count=5, use_llm=True)
+# 输出：[{"text": "...", "source": "...", "speaker": "...", "usage": "..."}, ...]
+```
+
+### Thread生成器（thread_generator.py）
+
+**功能**：基于热点话题和金句，生成可直接发布的Twitter Thread / 小红书文案
+
+**支持格式**：
+- `thread`：Twitter Thread（5条推文）
+- `xiaohongshu`：小红书图文
+- `article`：公众号文章大纲
+
+**使用方式**：
+```python
+from thread_generator import generate_thread
+
+topic = "AI Agent创业"
+sentences = [{"text": "...", "source": "..."}]
+content = generate_thread(topic, sentences, line_count=5, content_type="thread")
+```
+
+### 配置
+
+```bash
+# .env 文件中添加
+FEISHU_ENABLED=true
+OBSIDIAN_ENABLED=true
+OBSIDIAN_VAULT_PATH=/path/to/vault
+```
+
+### 定时任务
+
+```bash
+# 每天早上9点生成创意燃料
+0 9 * * * cd /path/to/knowledge-hunter && python scripts/daily_fuel.py
+```
+
+### 快速测试
+
+```bash
+# 手动生成今日创意燃料
+python scripts/daily_fuel.py
+
+# 测试金句提取
+python scripts/gold_sentence.py
+
+# 测试Thread生成
+python scripts/thread_generator.py
+```
+
+---
+
 ## 目录结构
 
 ```
@@ -197,7 +388,21 @@
 │   ├── bilibili.py            # B站监控
 │   ├── twitter.py             # Twitter监控
 │   ├── whisper_transcriber.py # Whisper转录
-│   └── sync_to_feishu.py      # 飞书同步
+│   │
+│   │   ⭐ v1.3.0 新增脚本 ⭐
+│   ├── config.py              # 🔥知识库配置模块
+│   ├── knowledge_base.py      # 🔥知识库工厂
+│   ├── sync_to_obsidian.py    # 🔥Obsidian同步器
+│   └── sync_to_feishu.py      # 飞书同步（已重构）
+│   │
+│   │   ⭐ v1.4.0 新增脚本 ⭐
+│   ├── quote_extractor.py      # 🔥金句提取器
+│   └── quote_library.py       # 🔥素材库管理器
+│   │
+│   │   ⭐ v2.0 新增脚本 ⭐
+│   ├── daily_fuel.py          # 🔥每日创意燃料生成器
+│   ├── gold_sentence.py       # 🔥金句提取器（新版）
+│   └── thread_generator.py     # 🔥Thread生成器
 │
 ├── 配置/
 │   ├── 博主列表.md             # 监控目标配置
@@ -220,6 +425,14 @@
 │   ├── 观点库/                # 观点数据库
 │   ├── 评分库/                # 评分缓存
 │   └── 话题库/                # ⭐话题历史 v1.2.0
+│
+├── quotes/                     # ⭐金句素材库 v1.4.0
+│   ├── all_quotes.md          # 全部金句汇总
+│   ├── by_topic/              # 按主题分类
+│   │   ├── AI创业.md
+│   │   ├── 个人成长.md
+│   │   └── ...
+│   └── metadata.json          # 元数据索引
 │
 ├── 输出/
 │   ├── 小宇宙/
@@ -278,6 +491,77 @@ cp templates/历史选题库.md 选题库/历史选题库.md
 
 ---
 
+## 📚 知识库同步配置（v1.3.0）
+
+### 支持的知识库
+
+| 知识库 | 同步方式 | 配置难度 |
+|--------|---------|---------|
+| **飞书** | 通过 lark-cli 上传到知识库 | ⭐⭐ 需安装 lark-cli |
+| **Obsidian** | 直接写入本地 vault 文件夹 | ⭐ 仅需指定路径 |
+
+### 配置方法
+
+#### 飞书知识库
+
+1. **安装 lark-cli**（首次使用）
+   ```bash
+   # macOS
+   brew install lark-cli
+   
+   # 或参考官方文档
+   # https://github.com/nicepkg/lark-cli
+   ```
+
+2. **配置 .env**
+   ```bash
+   FEISHU_ENABLED=true
+   FEISHU_WIKI_SPACE=你的知识库空间名
+   FEISHU_ROOT_FOLDER=内容监控
+   ```
+
+#### Obsidian 知识库
+
+1. **找到你的 vault 路径**
+   - 在 Obsidian 中打开设置 → 关于 → 打开 vault 文件夹
+   - 复制文件夹路径
+
+2. **配置 .env**
+   ```bash
+   OBSIDIAN_ENABLED=true
+   OBSIDIAN_VAULT_PATH=/Users/你的用户名/Documents/ObsidianVault
+   OBSIDIAN_FOLDER=内容监控
+   ```
+
+### Obsidian 特性
+
+同步到 Obsidian 的文件会自动：
+- 添加 YAML frontmatter（日期、来源、标签、状态）
+- 按 平台/日期_标题.md 格式命名
+- 支持 `[[]]` 双链语法
+
+示例 frontmatter：
+```yaml
+---
+date: 2026-04-18
+source: 小宇宙
+tags: [播客, 转录, AI]
+status: new
+---
+```
+
+### 同时启用多个知识库
+
+```bash
+# .env
+FEISHU_ENABLED=true
+OBSIDIAN_ENABLED=true
+```
+
+系统会自动同步到所有启用的知识库~
+
+---
+
 ## 配置说明
 
 ### 选题配置 (选题配置.json)
@@ -305,9 +589,133 @@ cp templates/历史选题库.md 选题库/历史选题库.md
 
 | 版本 | 更新内容 |
 |------|---------|
-| **v1.2.0** | 新增选题发现器：话题聚类、选题生成、内容关联、选题报告 |
+| **v1.3.0** | 多知识库支持：新增 Obsidian 同步、知识库工厂模式、向后兼容升级 |
+| v1.2.0 | 新增选题发现器：话题聚类、选题生成、内容关联、选题报告 |
 | v1.1.0 | 新增每日简报推送、观点提取、内容评分、冲突检测 |
 | v1.0.0 | 基础监控功能（转录+飞书同步） |
+
+---
+
+## 📦 升级指南（v1.2.x → v1.3.0）
+
+### 升级方式
+
+**方式一：重新安装（推荐）**
+从 GitHub 或虾评重新下载安装最新版本，覆盖原有文件即可。
+
+**方式二：Git 拉取**
+```bash
+cd .skills/content-monitor
+git pull origin main
+```
+
+### ⚠️ 重要：配置迁移
+
+v1.3.0 对知识库同步进行了架构升级，需要更新配置：
+
+#### 1. 创建 .env 文件
+
+复制 `.env.example` 为 `.env`：
+```bash
+cp .env.example .env
+```
+
+#### 2. 启用知识库（按需配置）
+
+**如果你之前使用飞书同步：**
+```bash
+# .env 文件中添加
+FEISHU_ENABLED=true
+FEISHU_WIKI_SPACE=my_library
+FEISHU_ROOT_FOLDER=内容监控
+```
+
+**如果你想新增 Obsidian 同步：**
+```bash
+OBSIDIAN_ENABLED=true
+OBSIDIAN_VAULT_PATH=/path/to/your/obsidian/vault
+OBSIDIAN_FOLDER=内容监控
+```
+
+#### 3. 新增文件说明
+
+| 文件 | 说明 |
+|------|------|
+| `scripts/config.py` | 知识库配置模块 |
+| `scripts/knowledge_base.py` | 知识库工厂（统一管理多知识库） |
+| `scripts/sync_to_obsidian.py` | Obsidian 同步器 |
+
+### 向后兼容
+
+- ✅ 默认不启用任何知识库同步
+- ✅ 原有飞书配置方式仍然支持（但建议迁移到 .env）
+- ✅ 监控、转录、观点提取等功能不受影响
+
+---
+
+## 📦 升级指南（v1.4.x → v2.0.0）
+
+### 新增核心功能
+
+| 功能 | 说明 |
+|------|------|
+| `daily_fuel.py` | 每日创意燃料生成器（核心新功能） |
+| `gold_sentence.py` | 金句提取器（新版，替代quote_extractor.py） |
+| `thread_generator.py` | Thread生成器（生成可直接发布的内容） |
+
+### 升级方式
+
+**方式一：重新克隆（推荐）**
+```bash
+git clone https://github.com/chubbyxiaopangdun/knowledge-hunter.git
+```
+
+**方式二：Git 拉取**
+```bash
+cd knowledge-hunter
+git pull origin main
+```
+
+### v2.0 新功能配置
+
+v2.0 不需要额外配置，所有功能默认关闭（如无内容则跳过）：
+
+```bash
+# .env 文件（已有则跳过）
+cp .env.example .env
+
+# 确保有LLM配置（如已配置则跳过）
+# 编辑 配置/LLM配置.json 添加你的API Key
+```
+
+### 新增文件说明
+
+| 文件 | 说明 |
+|------|------|
+| `scripts/daily_fuel.py` | 每日创意燃料生成器 |
+| `scripts/gold_sentence.py` | 金句提取器（新版） |
+| `scripts/thread_generator.py` | Thread生成器 |
+| `templates/每日创意燃料模板.md` | 创意燃料模板 |
+
+### 快速测试
+
+```bash
+# 手动生成今日创意燃料
+python scripts/daily_fuel.py
+
+# 测试金句提取
+python scripts/gold_sentence.py
+
+# 测试Thread生成
+python scripts/thread_generator.py
+```
+
+### 定时任务（可选）
+
+```bash
+# 每天早上9点生成创意燃料
+0 9 * * * cd /path/to/knowledge-hunter && python scripts/daily_fuel.py
+```
 
 ---
 

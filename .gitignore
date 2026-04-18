@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.log
+日志/
+输出/
+选题库/
+配置/
+.env
+*.zip
+.DS_Store
