@@ -1,0 +1,30 @@
+# Content Monitor 依赖列表
+
+# 核心依赖
+feedparser>=6.0.0          # RSS解析
+httpx>=0.24.0              # HTTP请求
+beautifulsoup4>=4.12.0     # HTML解析
+lxml>=4.9.0                # XML解析
+
+# 视频下载
+yt-dlp>=2023.0.0           # YouTube/B站下载
+you-get>=0.4.0             # 备用下载工具
+
+# 音频处理
+ffmpeg-python>=0.2.0       # FFmpeg封装
+
+# 语音转文字
+openai-whisper>=20230117   # Whisper转录
+
+# 飞书同步
+lark-cli                   # 飞书CLI工具
+
+# 工具库
+python-dateutil>=2.8.0     # 日期处理
+pytz>=2023.0               # 时区处理
+tqdm>=4.65.0               # 进度条
+colorama>=0.4.0            # 终端颜色
+
+# 可选依赖
+# faster-whisper>=0.9.0    # 更快的转录（可选）
+# pyannote.audio>=3.0.0    # 说话人分离（可选）
