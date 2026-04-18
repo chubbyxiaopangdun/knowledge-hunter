@@ -2,7 +2,7 @@
 
 > 主动出击，精准捕获有价值的内容，转化为你的知识资产 🎯
 
-**版本**: v1.2.5  
+**版本**: v1.4.0  
 **更新时间**: 2026-04-18  
 **状态**: 正式版 (stable)
 
@@ -174,6 +174,90 @@
 
 ---
 
+## 🎯 金句提取器 v1.4.0 ⭐ 最新升级
+
+从「监控工具」升级为「素材工具」，自动从转录内容中提取金句，存入素材库供内容创作使用。
+
+### 解决的问题
+
+- 转录的内容无法直接用于创作
+- 想要引用原文金句但找不到
+- 积累的素材太多太杂难以整理
+
+### 核心功能
+
+| 模块 | 脚本 | 功能 |
+|------|------|------|
+| 金句提取器 | `quote_extractor.py` | 调用AI从转录文本中提取金句 |
+| 素材库管理 | `quote_library.py` | 管理金句素材库，支持搜索和导出 |
+
+### 金句提取流程
+
+```
+内容转录 → AI自动提取约20个金句 → 存入素材库 → 用户创作时提取使用
+```
+
+### 金句格式
+
+每个金句包含：
+- **原文**：完整的金句文本
+- **主题标签**：AI自动识别的主题（创业/职场/AI等）
+- **来源信息**：标题、作者、链接、平台
+- **使用建议**：可选的使用场景提示
+
+### 素材库目录结构
+
+```
+quotes/
+├── all_quotes.md          # 全部金句汇总
+├── by_topic/              # 按主题分类
+│   ├── AI创业.md
+│   ├── 个人成长.md
+│   └── ...
+└── metadata.json          # 元数据索引
+```
+
+### 配置选项
+
+```bash
+# 启用金句提取（默认关闭，向后兼容）
+ENABLE_QUOTE_EXTRACTION=true
+
+# 每个视频提取的金句数量
+QUOTES_PER_VIDEO=20
+
+# AI模型（默认gpt-4o-mini，性价比高）
+QUOTE_MODEL=gpt-4o-mini
+
+# 素材库存放目录
+QUOTES_OUTPUT_DIR=./quotes
+```
+
+### 使用示例
+
+```bash
+# 命令行直接提取金句
+python scripts/quote_extractor.py --file 输出/某视频.txt --title "视频标题"
+
+# 查看素材库统计
+python scripts/quote_library.py stats
+
+# 按主题搜索
+python scripts/quote_library.py list --topic AI
+
+# 导出全部素材
+python scripts/quote_library.py export --output my_quotes.md
+```
+
+### 注意事项
+
+- ⚠️ 金句提取使用AI模型，会产生API费用
+- 💡 建议使用 `gpt-4o-mini` 模型，性价比最高
+- 🔄 默认关闭，如需启用请设置 `ENABLE_QUOTE_EXTRACTION=true`
+- 📊 金句会自动按主题分类存储，方便后续查找使用
+
+---
+
 ## 目录结构
 
 ```
@@ -203,6 +287,10 @@
 │   ├── knowledge_base.py      # 🔥知识库工厂
 │   ├── sync_to_obsidian.py    # 🔥Obsidian同步器
 │   └── sync_to_feishu.py      # 飞书同步（已重构）
+│   │
+│   │   ⭐ v1.4.0 新增脚本 ⭐
+│   ├── quote_extractor.py      # 🔥金句提取器
+│   └── quote_library.py       # 🔥素材库管理器
 │
 ├── 配置/
 │   ├── 博主列表.md             # 监控目标配置
@@ -225,6 +313,14 @@
 │   ├── 观点库/                # 观点数据库
 │   ├── 评分库/                # 评分缓存
 │   └── 话题库/                # ⭐话题历史 v1.2.0
+│
+├── quotes/                     # ⭐金句素材库 v1.4.0
+│   ├── all_quotes.md          # 全部金句汇总
+│   ├── by_topic/              # 按主题分类
+│   │   ├── AI创业.md
+│   │   ├── 个人成长.md
+│   │   └── ...
+│   └── metadata.json          # 元数据索引
 │
 ├── 输出/
 │   ├── 小宇宙/
