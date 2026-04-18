@@ -131,40 +131,7 @@ class TwitterMonitor:
         logger.error(f"无法获取 {username} 的推文，请配置Twitter API Key或使用RSS订阅")
         return []
     
-    def _parse_nitter_html(self, html: str, username: str) -> List[Dict]:
-        """解析Nitter HTML获取推文"""
-        tweets = []
-        
-        # 简单的HTML解析
-        tweet_pattern = r'<div class="tweet-content[^"]*"[^>]*>(.*?)</div>'
-        time_pattern = r'<span class="tweet-date[^"]*"[^>]*>.*?<a href="([^"]+)">(.*?)</a>'
-        
-        matches = re.finditer(tweet_pattern, html, re.DOTALL)
-        time_matches = list(re.finditer(time_pattern, html, re.DOTALL))
-        
-        for i, match in enumerate(matches):
-            text = match.group(1)
-            # 清理HTML标签
-            text = re.sub(r'<[^>]+>', '', text)
-            text = self._clean_text(text)
-            
-            if text and len(text) > 10:  # 过滤太短的推文
-                link = ""
-                timestamp = ""
-                
-                if i < len(time_matches):
-                    link = time_matches[i].group(1)
-                    timestamp = time_matches[i].group(2)
-                
-                tweets.append({
-                    'id': f"{username}_{i}",
-                    'text': text,
-                    'created_at': timestamp,
-                    'link': f"https://twitter.com{link}" if link.startswith('/') else link,
-                    'username': username,
-                })
-        
-        return tweets[:10]
+    # 安全修复：已移除_parse_nitter_html函数，不再依赖第三方服务
     
     def _clean_text(self, text: str) -> str:
         """清理文本"""

@@ -3,10 +3,11 @@
 """
 依赖验证脚本
 检查所有依赖是否正确安装
+安全修复：使用shutil.which替代subprocess检测命令
 """
 
 import sys
-import subprocess
+import shutil
 
 def check_module(name, import_name=None):
     """检查模块是否可导入"""
@@ -22,18 +23,15 @@ def check_module(name, import_name=None):
         print(f"❌ {name}: 未安装")
         return False
 
-def check_command(name, args=['--version']):
-    """检查命令行工具"""
-    try:
-        result = subprocess.run([name] + args, capture_output=True, text=True, timeout=5)
-        if result.returncode == 0:
-            version_line = result.stdout.split('\n')[0]
-            print(f"✅ {name}: {version_line}")
-            return True
-    except Exception as e:
-        pass
-    print(f"❌ {name}: 未安装或不可用")
-    return False
+def check_command(name):
+    """检查命令行工具是否可用（安全方式）"""
+    path = shutil.which(name)
+    if path:
+        print(f"✅ {name}: {path}")
+        return True
+    else:
+        print(f"❌ {name}: 未安装或不可用")
+        return False
 
 def main():
     print("=" * 50)
@@ -54,8 +52,8 @@ def main():
     
     print()
     print("【命令行工具】")
-    all_ok &= check_command("ffmpeg", ['-version'])
-    all_ok &= check_command("python3", ['--version'])
+    all_ok &= check_command("ffmpeg")
+    all_ok &= check_command("python3")
     
     print()
     print("=" * 50)

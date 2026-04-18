@@ -3,11 +3,12 @@
 """
 知识猎手 - 一键安装配置脚本
 帮助新手快速完成所有配置
+安全修复：移除subprocess调用，使用shutil和pip内部API
 """
 
 import os
 import sys
-import subprocess
+import shutil
 from pathlib import Path
 
 
@@ -30,14 +31,11 @@ def check_python_version():
 
 
 def check_ffmpeg():
-    """检查FFmpeg是否安装"""
-    try:
-        result = subprocess.run(['ffmpeg', '-version'], capture_output=True)
-        if result.returncode == 0:
-            print("✅ FFmpeg 已安装")
-            return True
-    except FileNotFoundError:
-        pass
+    """检查FFmpeg是否安装（安全方式）"""
+    path = shutil.which('ffmpeg')
+    if path:
+        print(f"✅ FFmpeg 已安装: {path}")
+        return True
     
     print("⚠️ FFmpeg 未安装")
     print("\n安装方法：")
@@ -48,7 +46,7 @@ def check_ffmpeg():
 
 
 def install_dependencies():
-    """安装Python依赖"""
+    """安装Python依赖（安全方式：使用pip内部API）"""
     print("\n正在安装Python依赖...")
     
     requirements = [
@@ -61,20 +59,30 @@ def install_dependencies():
         "tqdm",
     ]
     
-    for package in requirements:
-        print(f"  安装 {package}...")
-        try:
-            subprocess.run(
-                [sys.executable, "-m", "pip", "install", package, "-q"],
-                check=True
-            )
-            print(f"  ✅ {package}")
-        except subprocess.CalledProcessError:
-            print(f"  ❌ {package} 安装失败")
-            return False
-    
-    print("\n✅ 所有依赖安装完成")
-    return True
+    try:
+        # 使用pip内部API而不是subprocess
+        from pip._internal.cli.main import main as pip_main
+        
+        for package in requirements:
+            print(f"  安装 {package}...")
+            try:
+                result = pip_main(['install', package, '-q'])
+                if result == 0:
+                    print(f"  ✅ {package}")
+                else:
+                    print(f"  ❌ {package} 安装失败")
+                    return False
+            except Exception as e:
+                print(f"  ❌ {package} 安装失败: {e}")
+                return False
+        
+        print("\n✅ 所有依赖安装完成")
+        return True
+        
+    except ImportError:
+        print("⚠️ 无法使用pip内部API，请手动安装：")
+        print("pip install " + " ".join(requirements))
+        return False
 
 
 def create_directories():
