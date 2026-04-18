@@ -30,6 +30,32 @@ FORBIDDEN_PATTERNS = [
 ]
 
 
+
+def call_llm(prompt: str, model: str = "MiniMax-M2.7") -> str:
+    """
+    通用的LLM调用函数，供其他脚本使用
+    使用环境变量MINIMAX_API_KEY
+    """
+    from openai import OpenAI
+    import os
+    
+    api_key = os.environ.get('MINIMAX_API_KEY', '')
+    if not api_key:
+        return ""
+    
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://api.minimax.chat/v1"
+    )
+    
+    response = client.chat.completions.create(
+        model="MiniMax-M2.7",
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=4096
+    )
+    return response.choices[0].message.content
+
+
 @dataclass
 class ViewPoint:
     """观点数据类"""
