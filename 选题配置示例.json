@@ -1,0 +1,113 @@
+{
+  "_comment": "选题配置示例 - 复制为 选题配置.json 使用",
+  
+  "version": "1.2.0",
+  "last_updated": "2026-04-18",
+
+  "report": {
+    "push_time": "20:00",
+    "push_day": "sunday",
+    "feishu_webhook": "",
+    "feishu_chat_id": "",
+    "include_next_week_plan": true
+  },
+
+  "hot_topics": {
+    "hot_threshold": 3,
+    "top_n": 5,
+    "recency_days": 7,
+    "engagement_weight": 0.3,
+    "recency_weight": 0.3,
+    "discussion_weight": 0.4
+  },
+
+  "topic_suggestions": {
+    "default_platform": "xiaohongshu",
+    "suggestion_count": 8,
+    "use_llm": false,
+    "llm_config": {
+      "provider": "coze",
+      "model": "gpt-4o-mini",
+      "temperature": 0.8
+    }
+  },
+
+  "topic_tracking": {
+    "relevance_threshold": 0.5,
+    "max_updates": 5,
+    "update_window_days": 7,
+    "auto_followup": false
+  },
+
+  "content_formats": {
+    "supported": ["观点", "测评", "教程", "故事", "资讯"],
+    "default": "观点"
+  },
+
+  "platform_styles": {
+    "wechat": {
+      "style": "深度长文",
+      "tone": "专业有深度",
+      "length": "1500-3000字"
+    },
+    "xiaohongshu": {
+      "style": "轻松有趣",
+      "tone": "干货+情绪",
+      "length": "500-1000字"
+    },
+    "bilibili": {
+      "style": "视频脚本",
+      "tone": "有梗有料",
+      "length": "5-15分钟"
+    },
+    "douyin": {
+      "style": "短平快",
+      "tone": "抓眼球",
+      "length": "30秒-1分钟"
+    },
+    "zhihu": {
+      "style": "专业分析",
+      "tone": "有理有据",
+      "length": "1000-2000字"
+    }
+  },
+
+  "topic_keywords": {
+    "AI创业": ["AI创业", "人工智能创业", "大模型创业", "LLM创业", "Agent创业", "智能体创业"],
+    "私域流量": ["私域", "私域流量", "私域运营", "私域电商", "私域2.0"],
+    "程序员危机": ["程序员", "程序员失业", "程序员转型", "AI写代码", "AI编程"],
+    "流量获取": ["流量获取", "获客", "增长黑客", "裂变", "病毒传播"],
+    "职场变化": ["裁员", "降薪", "失业", "就业难", "35岁危机", "中年危机"],
+    "自媒体变现": ["自媒体变现", "博主变现", "内容变现", "知识付费", "带货"],
+    "AI应用": ["AI应用", "AI工具", "AI产品", "AI落地"],
+    "创业融资": ["融资", "投资", "创业融资", "VC", "风投"]
+  },
+
+  "title_templates": {
+    "warning": [
+      "{topic}的{num}个陷阱，踩中一个就死",
+      "做{topic}之前，先想清楚这{num}点",
+      "{topic}失败的{num}个原因，第{num}个最致命"
+    ],
+    "truth": [
+      "{topic}的真相，第{num}个你一定不知道",
+      "关于{topic}，我发现的{num}个真相",
+      "{topic}一年后，我后悔了{num}件事"
+    ],
+    "debate": [
+      "{topic}A还是B？看完就有答案",
+      "关于{topic}，大佬们吵翻了",
+      "{topic}，我站{side}"
+    ],
+    "guide": [
+      "{topic}入门指南，看这一篇就够了",
+      "{topic}完整教程，从小白到精通",
+      "{topic}实操手册，收藏这一篇"
+    ],
+    "story": [
+      "我做{topic}的第{time}天，看到了这些",
+      "{topic}一年后的真实感受",
+      "从{topic}失败到成功的全过程"
+    ]
+  }
+}
