@@ -2,7 +2,7 @@
 
 > 主动出击，精准捕获有价值的内容，转化为你的知识资产 🎯
 
-**版本**: v1.4.0  
+**版本**: v2.0.0  
 **更新时间**: 2026-04-18  
 **状态**: 正式版 (stable)
 
@@ -258,6 +258,113 @@ python scripts/quote_library.py export --output my_quotes.md
 
 ---
 
+## 🎯 每日创意燃料 v2.0 ⭐ 核心升级（2026-04-18）
+
+从「选题发现」升级为「创意燃料」，每天早上告诉你：**今天做什么内容**。
+
+### 解决的问题
+
+- 选题报告太「统计」不「行动」—— 不知道今天具体做什么
+- 转录的内容无法直接用于创作
+- 缺少「看完就能动手」的素材
+
+### 核心功能
+
+| 模块 | 脚本 | 功能 |
+|------|------|------|
+| 每日创意燃料 | `daily_fuel.py` | 每天生成「今日做什么」的行动建议 |
+| 金句提取器 | `gold_sentence.py` | 从文本中提取有价值的引用金句 |
+| Thread生成器 | `thread_generator.py` | 基于热点+金句生成可直接发布的内容 |
+
+### 每日创意燃料格式
+
+```
+📋 今日创意燃料 | 2026-04-18 周六
+
+🔥 今日热点（3个可追热点）
+1️⃣ AI Agent创业
+   - 热度：85/100 | 今日相关：12条
+   - 建议选题：「AI Agent创业的3个陷阱」
+
+💡 今日金句（5个可直接引用的素材）
+「AI不会取代你，但会用AI的人会取代你」— 某CEO
+
+✏️ 今日可做（1个可直接发布的Thread）
+【Tweet 1/5】
+{钩子}
+...
+```
+
+
+### 金句提取器（gold_sentence.py）
+
+**功能**：从任意文本中提取有价值的引用金句
+
+**金句特征**：
+1. 有独特观点（不是描述，是判断）
+2. 语言有力（简洁有力）
+3. 可独立引用（不需要上下文）
+4. 字数适中（20-80字）
+5. 有共鸣感（能引发认同）
+
+**使用方式**：
+```python
+from gold_sentence import extract_gold_sentences
+
+text = "...你的转录文本..."
+sentences = extract_gold_sentences(text, count=5, use_llm=True)
+# 输出：[{"text": "...", "source": "...", "speaker": "...", "usage": "..."}, ...]
+```
+
+### Thread生成器（thread_generator.py）
+
+**功能**：基于热点话题和金句，生成可直接发布的Twitter Thread / 小红书文案
+
+**支持格式**：
+- `thread`：Twitter Thread（5条推文）
+- `xiaohongshu`：小红书图文
+- `article`：公众号文章大纲
+
+**使用方式**：
+```python
+from thread_generator import generate_thread
+
+topic = "AI Agent创业"
+sentences = [{"text": "...", "source": "..."}]
+content = generate_thread(topic, sentences, line_count=5, content_type="thread")
+```
+
+### 配置
+
+```bash
+# .env 文件中添加
+FEISHU_ENABLED=true
+OBSIDIAN_ENABLED=true
+OBSIDIAN_VAULT_PATH=/path/to/vault
+```
+
+### 定时任务
+
+```bash
+# 每天早上9点生成创意燃料
+0 9 * * * cd /path/to/knowledge-hunter && python scripts/daily_fuel.py
+```
+
+### 快速测试
+
+```bash
+# 手动生成今日创意燃料
+python scripts/daily_fuel.py
+
+# 测试金句提取
+python scripts/gold_sentence.py
+
+# 测试Thread生成
+python scripts/thread_generator.py
+```
+
+---
+
 ## 目录结构
 
 ```
@@ -291,6 +398,11 @@ python scripts/quote_library.py export --output my_quotes.md
 │   │   ⭐ v1.4.0 新增脚本 ⭐
 │   ├── quote_extractor.py      # 🔥金句提取器
 │   └── quote_library.py       # 🔥素材库管理器
+│   │
+│   │   ⭐ v2.0 新增脚本 ⭐
+│   ├── daily_fuel.py          # 🔥每日创意燃料生成器
+│   ├── gold_sentence.py       # 🔥金句提取器（新版）
+│   └── thread_generator.py     # 🔥Thread生成器
 │
 ├── 配置/
 │   ├── 博主列表.md             # 监控目标配置
@@ -538,6 +650,72 @@ OBSIDIAN_FOLDER=内容监控
 - ✅ 默认不启用任何知识库同步
 - ✅ 原有飞书配置方式仍然支持（但建议迁移到 .env）
 - ✅ 监控、转录、观点提取等功能不受影响
+
+---
+
+## 📦 升级指南（v1.4.x → v2.0.0）
+
+### 新增核心功能
+
+| 功能 | 说明 |
+|------|------|
+| `daily_fuel.py` | 每日创意燃料生成器（核心新功能） |
+| `gold_sentence.py` | 金句提取器（新版，替代quote_extractor.py） |
+| `thread_generator.py` | Thread生成器（生成可直接发布的内容） |
+
+### 升级方式
+
+**方式一：重新克隆（推荐）**
+```bash
+git clone https://github.com/chubbyxiaopangdun/knowledge-hunter.git
+```
+
+**方式二：Git 拉取**
+```bash
+cd knowledge-hunter
+git pull origin main
+```
+
+### v2.0 新功能配置
+
+v2.0 不需要额外配置，所有功能默认关闭（如无内容则跳过）：
+
+```bash
+# .env 文件（已有则跳过）
+cp .env.example .env
+
+# 确保有LLM配置（如已配置则跳过）
+# 编辑 配置/LLM配置.json 添加你的API Key
+```
+
+### 新增文件说明
+
+| 文件 | 说明 |
+|------|------|
+| `scripts/daily_fuel.py` | 每日创意燃料生成器 |
+| `scripts/gold_sentence.py` | 金句提取器（新版） |
+| `scripts/thread_generator.py` | Thread生成器 |
+| `templates/每日创意燃料模板.md` | 创意燃料模板 |
+
+### 快速测试
+
+```bash
+# 手动生成今日创意燃料
+python scripts/daily_fuel.py
+
+# 测试金句提取
+python scripts/gold_sentence.py
+
+# 测试Thread生成
+python scripts/thread_generator.py
+```
+
+### 定时任务（可选）
+
+```bash
+# 每天早上9点生成创意燃料
+0 9 * * * cd /path/to/knowledge-hunter && python scripts/daily_fuel.py
+```
 
 ---
 
