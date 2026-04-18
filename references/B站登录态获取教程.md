@@ -28,6 +28,8 @@
 
 B站的部分视频需要登录才能查看或下载，为了获取这些视频的内容，需要配置登录态。
 
+**注意：不配置SESSDATA也可以正常使用本技能，仅支持公开内容。**
+
 ---
 
 ## 方法一：从浏览器获取 SESSDATA（推荐）
@@ -74,89 +76,47 @@ $env:BILIBILI_SESSDATA="你复制的值"
 [Environment]::SetEnvironmentVariable("BILIBILI_SESSDATA", "你复制的值", "User")
 ```
 
-或在 Python 代码中设置：
-```python
-import os
-os.environ['BILIBILI_SESSDATA'] = '你复制的值'
-```
-
 ---
 
-## 方法二：使用配置文件
+## 验证是否生效
 
-在项目目录创建 `.env` 文件：
+运行以下命令检查环境变量是否设置成功：
 
+**Linux/macOS:**
 ```bash
-# .env 文件内容
-BILIBILI_SESSDATA=你复制的值
+echo $BILIBILI_SESSDATA
 ```
 
-然后在代码中加载：
-```python
-from dotenv import load_dotenv
-load_dotenv()
+**Windows:**
+```powershell
+echo $env:BILIBILI_SESSDATA
 ```
 
----
-
-## 注意事项
-
-⚠️ **安全提醒**：
-- SESSDATA 是你的登录凭证，**不要分享给他人**
-- 不要在公开的代码仓库中提交这个值
-- 定期更换密码会导致 SESSDATA 失效，需要重新获取
-
-⚠️ **有效期**：
-- SESSDATA 有一定的有效期（通常30天）
-- 过期后需要重新获取
-
-⚠️ **风控**：
-- 不要频繁请求，可能触发B站风控
-- 建议使用自己的小号，避免主账号风险
-
----
-
-## 验证配置是否成功
-
-运行测试脚本：
-
-```python
-from scripts.bilibili import BilibiliMonitor
-
-monitor = BilibiliMonitor()
-info = monitor.get_video_info("BV1GJ411x7h7")  # 测试视频
-if info:
-    print("✅ B站配置成功")
-    print(f"视频标题: {info.get('title')}")
-else:
-    print("❌ 配置失败，请检查 SESSDATA")
-```
+如果输出你设置的值，则配置成功。
 
 ---
 
 ## 常见问题
 
-### Q: 提示"账号未登录"
-A: SESSDATA 可能已过期，请重新获取。
+### Q: SESSDATA 有效期多久？
+A: 通常有效期较长，但建议每月更换一次以确保安全。
 
-### Q: 提示"访问过于频繁"
-A: 触发了风控，请等待一段时间后再试。
+### Q: 配置后还是无法下载？
+A: 
+1. 检查环境变量是否正确设置
+2. 确认SESSDATA是否过期
+3. 尝试重新获取SESSDATA
 
-### Q: 获取不到 Cookie 列表
-A: 确保你已经登录B站，且在 bilibili.com 域名下查看。
-
----
-
-## 技术原理
-
-SESSDATA 是B站用于识别用户身份的 Cookie，通过在请求中携带这个 Cookie，服务器会认为请求来自已登录用户，从而返回需要登录才能查看的内容。
-
-```
-请求示例：
-GET /x/web-interface/view?bvid=BV1GJ411x7h7
-Cookie: SESSDATA=xxxxx; ...
-```
+### Q: 使用小号有什么好处？
+A: 避免主账号风险，即使出现问题也不会影响你的主要B站账号。
 
 ---
 
-*更新时间：2026-04-18*
+## 安全提示
+
+- ✅ 使用小号而非主账号
+- ✅ 定期更换SESSDATA
+- ✅ 不要在公共电脑上保存
+- ❌ 不要分享给他人
+- ❌ 不要上传到公开仓库
+- ❌ 不要硬编码在代码中

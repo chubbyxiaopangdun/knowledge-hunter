@@ -1,4 +1,4 @@
-# Content Monitor 依赖列表 v1.2.2
+# Content Monitor 依赖列表 v1.2.5
 # 安全修复：固定所有依赖版本，避免供应链风险
 
 # 核心依赖
@@ -16,8 +16,13 @@ ffmpeg-python==0.2.0        # FFmpeg封装
 # 语音转文字
 openai-whisper==20231117    # Whisper转录 - 固定版本
 
-# 飞书同步
-lark-oapi==1.2.20           # 飞书官方SDK（安全替代lark-cli）
+# 飞书同步（可选）
+# 方法1：使用lark-cli命令行工具
+# 安装：pip install lark-cli
+# 文档：https://github.com/nicepkg/lark-cli
+#
+# 方法2：使用lark-oapi SDK（需在代码中启用）
+# lark-oapi==1.2.20
 
 # 工具库
 python-dateutil>=2.8.0     # 日期处理
